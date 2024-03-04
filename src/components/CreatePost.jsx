@@ -1,40 +1,66 @@
-import { useState } from "react";
+import { useState, useContext, useEffect } from "react";
+import { PostsContext } from "../App";
 
 const INITIAL_POST = {
-    title: '',
-    content: '',
-}
+  title: "",
+  content: "",
+};
 
-export default function CreatePost({ posts, setPosts }) {
-    const [post, setPost] = useState(INITIAL_POST)
+export default function CreatePost() {
+  const [post, setPost] = useState(INITIAL_POST);
+  const context = useContext(PostsContext);
 
-    const handleChange = (e) => {
-        const { name, value } = e.target
-        setPost({
-          ...post,
-          [name]: value,
-        })
+  useEffect(() => {
+    // On first load, check if there's any saved data in localStorage
+    const savedPost = localStorage.getItem("draftPost");
+    if (savedPost) {
+      setPost(JSON.parse(savedPost));
     }
+  }, []);
 
-    const handleSubmit = (e) => {
-        e.preventDefault()
-        setPosts([...posts, post])
-        setPost(INITIAL_POST)
-    }
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setPost({
+      ...post,
+      [name]: value,
+    });
+    localStorage.setItem(
+      "draftPost",
+      JSON.stringify({ ...post, [name]: value })
+    );
+  };
 
-    return (
-        <form onSubmit={handleSubmit}>
-            <label>
-              Title:
-              <input type="text" name="title" onChange={handleChange} value={post.title}></input>
-            </label>
-            <br/>
-            <label>
-              Content:
-              <textarea name="content" onChange={handleChange} value={post.content} cols={50} rows={5}></textarea>
-            </label>
-            <br/>
-            <input type="submit" value="Post!"></input>
-        </form>
-    )
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    context.setPosts([...context.posts, post]);
+    localStorage.removeItem("draftPost");
+    setPost(INITIAL_POST);
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <label>
+        Title:
+        <input
+          type="text"
+          name="title"
+          onChange={handleChange}
+          value={post.title}
+        ></input>
+      </label>
+      <br />
+      <label>
+        Content:
+        <textarea
+          name="content"
+          onChange={handleChange}
+          value={post.content}
+          cols={50}
+          rows={5}
+        ></textarea>
+      </label>
+      <br />
+      <input type="submit" value="Post!"></input>
+    </form>
+  );
 }
